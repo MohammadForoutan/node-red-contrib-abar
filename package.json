@@ -1,0 +1,23 @@
+{
+  "name": "abar-pardazesh",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "node-red": {
+    "nodes": {
+      "abar-sht31": "abar-sht31.js"
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "raspi-node-sht31": "^1.0.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}
