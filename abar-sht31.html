@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  RED.nodes.registerType('abar-sht31', {
+  RED.nodes.registerType('abar-i2c-command', {
     category: 'abar pardazesh',
     color: '#a6bbcf',
     defaults: {
@@ -11,13 +11,13 @@
     outputs: 1,
     icon: 'font-awesome/fa-thermometer-half',
     label: function () {
-      return this.name || 'abar-sht31';
+      return this.name || 'abar-i2c-command';
     },
   });
 </script>
 
-<!-- HTML ABAR SHT31 CASE -->
-<script type="text/html" data-template-name="abar-sht31">
+<!-- HTML ABAR i2c-command CASE -->
+<script type="text/html" data-template-name="abar-i2c-command">
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name" />
@@ -36,6 +36,6 @@
   </div>
 </script>
 
-<script type="text/html" data-help-name="abar-sht31">
-  <p>A simple node abar-sht31</p>
+<script type="text/html" data-help-name="abar-i2c-command">
+  <p>A simple node abar-i2c-command</p>
 </script>

@@ -1,7 +1,7 @@
 const SHT31 = require('i2c-bus');
 
 module.exports = function (RED) {
-  function ABAR_SHT31Node(config) {
+  function ABAR_I2C_COMMAND(config) {
     RED.nodes.createNode(this, config);
     var node = this;
     node.status({});
@@ -48,5 +48,5 @@ module.exports = function (RED) {
     });
   }
 
-  RED.nodes.registerType('abar-sht31', ABAR_SHT31Node);
+  RED.nodes.registerType('abar-i2c-command', ABAR_I2C_COMMAND);
 };
