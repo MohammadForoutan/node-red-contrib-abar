@@ -1,12 +1,72 @@
-const SHT31 = require('i2c-bus');
+const bus = require('i2c-bus');
+const TIMEOUT = 5000; // Timeout in milliseconds for reading JSON response
 
-module.exports = function (RED) {
+async function requestJson(device_address, buffer_size) {
+  await sendCommand('REQUEST_JSON');
+  await setTimeout(1000); // Small delay to allow for response
+
+  let jsonResponse = '';
+  const startTime = Date.now();
+
+  while (true) {
+    const responseBuffer = Buffer.alloc(buffer_size); // Adjust size as needed
+    const bytesRead = bus.i2cReadSync(
+      device_address,
+      responseBuffer.length,
+      responseBuffer
+    );
+    jsonResponse += responseBuffer.toString('utf-8', 0, bytesRead);
+
+    // Check if we have a complete JSON response
+    if (
+      jsonResponse.includes('{') &&
+      jsonResponse.includes('}') &&
+      jsonResponse
+    ) {
+      break;
+    }
+
+    // Check for timeout
+    if (Date.now() - startTime > TIMEOUT) {
+      console.log('Timeout while waiting for JSON response.');
+      return null;
+    }
+  }
+
+  try {
+    jsonResponse = jsonResponse.split('}')[0] + '}';
+    const data = JSON.parse(jsonResponse);
+    console.log(`Received JSON:`, data);
+    node.status({ fill: 'green', shape: 'dot', text: 'Done' });
+    setTimeout(() => {
+      node.status({});
+    }, 500);
+  } catch (error) {
+    console.log({ jsonResponse });
+
+    console.error('Failed to decode JSON response:', error);
+    node.status({
+      fill: 'red',
+      shape: 'dot',
+      text: error + '  , in json parsing',
+    });
+  }
+}
+
+async function sendCommand(command, device_address, buffer_size, node) {
+  const commandBuffer = Buffer.from(command, 'utf-8');
+  bus.i2cWriteSync(DEVICE_ADDR, commandBuffer.length, commandBuffer);
+  requestJson(device_address, buffer_size);
+  console.log(`Sent command: ${command}`);
+}
+
+module.exports = async function (RED) {
   function ABAR_I2C_COMMAND(config) {
     RED.nodes.createNode(this, config);
     var node = this;
     node.status({});
 
-    node.on('input', function (msg, send, done) {
+    node.on('input', async function (msg, send, done) {
       if (config.device) {
         this.device = parseInt(config.device ?? 0x44, 16);
       }
@@ -17,34 +77,17 @@ module.exports = function (RED) {
 
       node.status({ fill: 'yellow', shape: 'dot', text: 'querying...' });
 
-      // Instantiate the SHT31 class with the saved configuration
-      const sht31 = new SHT31(this.device ?? parseInt('0x44'), this.i2c ?? 0);
-
-      // Read temperature and humidity
-      sht31
-        .readSensorData()
-        .then(d => {
-          const tempFa = Math.round(d.temperature * 1.8 + 32);
-          const tempCe = Math.round(d.temperature);
-          const humidity = Math.round(d.humidity);
-
-          msg.payload = { tempFa, tempCe, humidity };
-
-          node.status({ fill: 'green', shape: 'dot', text: 'Done' });
-          setTimeout(() => {
-            node.status({});
-          }, 500);
-          node.send(msg);
-        })
-        .catch(err => {
-          node.status({
-            fill: 'red',
-            shape: 'dot',
-            text: 'no sensor at ' + (!!config.device ? config.device : '0x44'),
-          });
-          done(err);
-          node.error;
-        });
+      try {
+        await sendCommand(
+          config.command,
+          config.device,
+          config.buffer_size,
+          node
+        );
+      } catch (error) {
+        done(err);
+        node.error;
+      }
     });
   }
 
