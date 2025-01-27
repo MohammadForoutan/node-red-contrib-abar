@@ -7,7 +7,8 @@
   },
   "node-red": {
     "nodes": {
-      "abar-sht31": "abar-sht31.js"
+      "abar-sht31": "abar-sht31.js",
+      "abar-i2c-command": "abar-i2c-command.js"
     }
   },
   "keywords": [],
@@ -15,6 +16,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "i2c-bus": "^5.2.3",
     "raspi-node-sht31": "^1.0.1"
   },
   "devDependencies": {

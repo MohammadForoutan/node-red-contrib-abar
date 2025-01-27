@@ -1,0 +1,51 @@
+<script type="text/javascript">
+  RED.nodes.registerType('abar-sht31', {
+    category: 'abar pardazesh',
+    color: '#a6bbcf',
+    defaults: {
+      name: { value: '' },
+      i2c: { value: 0 },
+      device: { value: '0x44' },
+      command: { value: -1 },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'font-awesome/fa-thermometer-half',
+    label: function () {
+      return this.name || 'abar-sht31';
+    },
+  });
+</script>
+
+<!-- HTML ABAR SHT31 CASE -->
+<script type="text/html" data-template-name="abar-sht31">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-i2c"><i class="fa fa-tag"></i> I2C Bus</label>
+    <input type="number" id="node-input-i2c" placeholder="I2C Bus" />
+    <div class="form-tips"><b>Info:</b> Default I2C BUS is <i>0</i></div>
+  </div>
+  <div class="form-row">
+    <label for="node-input-device"
+      ><i class="fa fa-tag"></i> Device Address</label
+    >
+    <input type="text" id="node-input-device" placeholder="Device Address" />
+    <div class="form-tips"><b>Info:</b> Default I2C address is <i>0x44</i></div>
+  </div>
+  <div class="form-row">
+    <label for="node-input-command"><i class="fa fa-tag"></i> Command </label>
+    <input
+      type="text"
+      id="node-input-command"
+      placeholder="Command (on, off, ...)"
+    />
+    <div class="form-tips"><b>Info:</b> Command to run (couldn't be -1)</div>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="abar-sht31">
+  <p>A simple node abar-sht31</p>
+</script>
