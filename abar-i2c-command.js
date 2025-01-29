@@ -1,17 +1,16 @@
-module.exports = function(RED) {
-    const i2c = require('i2c-bus');
+module.exports = function (RED) {
+    const i2c = require("i2c-bus");
 
-    function extractJson(responseString) {
+    async function extractJson(responseString) {
 
-        console.log({ first: responseString })
         // Remove null characters and extra whitespace
         responseString = responseString.replace(/\0/g, "").trim();
+
 
         // Try to find the first valid JSON object
         let start = responseString.indexOf("{");
         let end = responseString.lastIndexOf("}");
-        
-        console.log({ second: responseString })
+
         if (start !== -1 && end !== -1 && end > start) {
             let jsonString = responseString.substring(start, end + 1);
             try {
@@ -28,10 +27,11 @@ module.exports = function(RED) {
         RED.nodes.createNode(this, config);
         var node = this;
 
-        node.on('input', function(msg, send, done) {
+        node.on("input", async function (msg, send, done) {
             const i2cBusNumber = parseInt(config.i2cBus);
             const deviceAddress = parseInt(config.deviceAddress, 16);
-            let command = config.command;
+            let command = msg.payload || config.command;
+        
             const timeout = parseInt(config.timeout);
             const bufferSize = parseInt(config.bufferSize);
 
@@ -42,27 +42,31 @@ module.exports = function(RED) {
             }
 
             try {
-                const bus = i2c.openSync(i2cBusNumber);
+                const bus = await i2c.openPromisified(i2cBusNumber);
                 let buffer = Buffer.from(command, "utf-8");
 
-                // Send the command
-                bus.i2cWriteSync(deviceAddress, buffer.length, buffer);
+                // Send the command asynchronously
+                await bus.i2cWrite(deviceAddress, buffer.length, buffer);
 
                 // Wait for response
-                setTimeout(() => {
-                    let responseBuffer = Buffer.alloc(bufferSize);
-                    bus.i2cReadSync(deviceAddress, bufferSize, responseBuffer);
+                // await new Promise((resolve) => setTimeout(resolve, timeout));
 
-                    // Convert buffer to string and extract JSON
-                    let responseString = responseBuffer.toString("utf-8").trim();
-                    const extracted = extractJson(responseString);
-                    console.log({responseBuffer, responseString, buffer, extracted })
-                    msg.payload = extracted;
+                let responseBuffer = Buffer.alloc(bufferSize);
 
-                    send(msg);
-                    bus.closeSync();
-                    done();
-                }, timeout);
+                // Read response asynchronously
+                await bus.i2cRead(deviceAddress, bufferSize, responseBuffer);
+
+                // Convert buffer to string and extract JSON
+                let responseString = responseBuffer.toString("utf-8").trim();
+                const extracted = await extractJson(responseString);
+
+
+                msg.payload = extracted;
+                send(msg);
+
+                // Close the bus asynchronously
+                await bus.close();
+                done();
             } catch (err) {
                 msg.payload = { error: "I2C communication failed", details: err.message };
                 send(msg);
