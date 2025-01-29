@@ -2,6 +2,8 @@ module.exports = function(RED) {
     const i2c = require('i2c-bus');
 
     function extractJson(responseString) {
+
+        console.log({ first: responseString })
         // Remove null characters and extra whitespace
         responseString = responseString.replace(/\0/g, "").trim();
 
@@ -9,6 +11,7 @@ module.exports = function(RED) {
         let start = responseString.indexOf("{");
         let end = responseString.lastIndexOf("}");
         
+        console.log({ second: responseString })
         if (start !== -1 && end !== -1 && end > start) {
             let jsonString = responseString.substring(start, end + 1);
             try {
@@ -52,7 +55,9 @@ module.exports = function(RED) {
 
                     // Convert buffer to string and extract JSON
                     let responseString = responseBuffer.toString("utf-8").trim();
-                    msg.payload = extractJson(responseString);
+                    const extracted = extractJson(responseString);
+                    console.log({responseBuffer, responseString, buffer, extracted })
+                    msg.payload = extracted;
 
                     send(msg);
                     bus.closeSync();
