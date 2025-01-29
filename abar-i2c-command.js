@@ -1,6 +1,26 @@
 module.exports = function(RED) {
     const i2c = require('i2c-bus');
 
+    function extractJson(responseString) {
+        // Remove null characters and extra whitespace
+        responseString = responseString.replace(/\0/g, "").trim();
+
+        // Try to find the first valid JSON object
+        let start = responseString.indexOf("{");
+        let end = responseString.lastIndexOf("}");
+        
+        if (start !== -1 && end !== -1 && end > start) {
+            let jsonString = responseString.substring(start, end + 1);
+            try {
+                return JSON.parse(jsonString);
+            } catch (e) {
+                return { raw: responseString, error: "Partial or malformed JSON" };
+            }
+        }
+
+        return { raw: responseString, error: "No valid JSON found" };
+    }
+
     function I2CCommandNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
@@ -13,15 +33,14 @@ module.exports = function(RED) {
             const bufferSize = parseInt(config.bufferSize);
 
             if (!command || typeof command !== "string") {
-		console.log({ command })
-                node.error("Invalid command. Expected a string.", msg);
+                msg.payload = { error: "Invalid command. Expected a string." };
+                send(msg);
                 return done();
             }
 
             try {
                 const bus = i2c.openSync(i2cBusNumber);
-
-                let buffer = Buffer.from(command, "utf-8"); // Ensure proper string encoding
+                let buffer = Buffer.from(command, "utf-8");
 
                 // Send the command
                 bus.i2cWriteSync(deviceAddress, buffer.length, buffer);
@@ -31,15 +50,18 @@ module.exports = function(RED) {
                     let responseBuffer = Buffer.alloc(bufferSize);
                     bus.i2cReadSync(deviceAddress, bufferSize, responseBuffer);
 
-                    msg.payload = responseBuffer.toString("utf-8").trim(); // Convert response to string
-                    send(msg);
+                    // Convert buffer to string and extract JSON
+                    let responseString = responseBuffer.toString("utf-8").trim();
+                    msg.payload = extractJson(responseString);
 
+                    send(msg);
                     bus.closeSync();
                     done();
                 }, timeout);
             } catch (err) {
-                node.error("I2C communication error: " + err.message, msg);
-                done(err);
+                msg.payload = { error: "I2C communication failed", details: err.message };
+                send(msg);
+                done();
             }
         });
     }
