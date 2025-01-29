@@ -1,58 +1,67 @@
 <script type="text/javascript">
-  RED.nodes.registerType('abar-i2c-command', {
+  RED.nodes.registerType('i2c-command', {
     category: 'abar pardazesh',
     color: '#a6bbcf',
     defaults: {
       name: { value: '' },
-      i2c: { value: 0 },
-      device: { value: '0x44' },
-      command: { value: -1 },
+      i2cBus: { value: 1, required: true, validate: RED.validators.number() },
+      deviceAddress: { value: '0x20', required: true },
+      command: { value: '', required: true },
+      timeout: {
+        value: 1000,
+        required: true,
+        validate: RED.validators.number(),
+      },
+      bufferSize: {
+        value: 32,
+        required: true,
+        validate: RED.validators.number(),
+      },
     },
     inputs: 1,
     outputs: 1,
-    icon: 'font-awesome/fa-thermometer-half',
+    icon: 'font-awesome/fa-microchip',
     label: function () {
-      return this.name || 'abar-i2c-command';
+      return this.name || 'I2C Command';
     },
   });
 </script>
 
-<!-- HTML ABAR I2C-COMMAND CASE -->
-<script type="text/html" data-template-name="abar-i2c-command">
+<script type="text/x-red" data-template-name="i2c-command">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Name" />
+      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+      <input type="text" id="node-input-name">
   </div>
   <div class="form-row">
-    <label for="node-input-i2c"><i class="fa fa-tag"></i> I2C Bus</label>
-    <input type="number" id="node-input-i2c" placeholder="I2C Bus" />
-    <div class="form-tips"><b>Info:</b> Default I2C BUS is <i>0</i></div>
+      <label for="node-input-i2cBus"><i class="fa fa-random"></i> I2C Bus</label>
+      <input type="number" id="node-input-i2cBus">
   </div>
   <div class="form-row">
-    <label for="node-input-device"
-      ><i class="fa fa-tag"></i> Device Address</label
-    >
-    <input type="text" id="node-input-device" placeholder="Device Address" />
-    <div class="form-tips"><b>Info:</b> Default I2C address is <i>0x44</i></div>
+      <label for="node-input-deviceAddress"><i class="fa fa-microchip"></i> Device Address</label>
+      <input type="text" id="node-input-deviceAddress">
   </div>
   <div class="form-row">
-    <label for="node-input-command"><i class="fa fa-tag"></i> Command </label>
-    <input
-      type="text"
-      id="node-input-command"
-      placeholder="Command (on, off, ...)"
-    />
-    <div class="form-tips"><b>Info:</b> Command to run</div>
+      <label for="node-input-command"><i class="fa fa-terminal"></i> Command</label>
+      <input type="text" id="node-input-command">
   </div>
   <div class="form-row">
-    <label for="node-input-buffer-size"
-      ><i class="fa fa-tag"></i> buffer-size
-    </label>
-    <input type="number" id="node-input-buffer-size" placeholder="2" />
-    <div class="form-tips"><b>Info:</b> buffer size</div>
+      <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Timeout (ms)</label>
+      <input type="number" id="node-input-timeout">
+  </div>
+  <div class="form-row">
+      <label for="node-input-bufferSize"><i class="fa fa-database"></i> Buffer Size</label>
+      <input type="number" id="node-input-bufferSize">
   </div>
 </script>
 
-<script type="text/html" data-help-name="abar-i2c-command">
-  <p>A simple node abar-i2c-command</p>
+<script type="text/x-red" data-help-name="i2c-command">
+  <p>Send a command via I2C and receive a response.</p>
+  <h3>Inputs</h3>
+  <ul>
+      <li><b>msg.payload</b> (optional) - Overrides the configured command.</li>
+  </ul>
+  <h3>Outputs</h3>
+  <ul>
+      <li><b>msg.payload</b> - Response from the I2C device.</li>
+  </ul>
 </script>
